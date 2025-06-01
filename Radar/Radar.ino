@@ -5,6 +5,8 @@ int trigPin = 2, echoPin = 3;
 int servoPin = 9, centerAngle = 90;
 Servo servo;
 
+bool display[58][115];
+
 void setup(){
     servo.attach(servoPin);
     
@@ -19,16 +21,11 @@ void loop(){
     Serial.print("looping");
     // 58 rows, 57 increments of 0.0698122m to reach 4m
     
-    
-    char display[58][116];
     for(int i = 0; i < 58; i++){
         for(int j = 0; j < 115; j++){
-            display[i][j] = ' ';
+            display[i][j] = false;
         }
-        display[i][115] = '\n';
     }
-    display[57][57] = '_';
-    
 
     servo.write(centerAngle);
 
@@ -48,7 +45,7 @@ void loop(){
         if(0.02 <= distance && distance <= 4.0){
             int row = max(57, (int)(distance / 0.0698122) * sin((centerAngle + i) * 0.01744444444));
             int col = min(-57, distance * cos((centerAngle + i) * 0.01744444444));
-            display[row][57 + col] = '#';
+            display[row][57 + col] = true;
         }
     }
 
@@ -56,11 +53,14 @@ void loop(){
         Serial.print('\n');
     }
     
-    /*
     for(int i = 0; i < 58; i++){
-        for(int j = 0; j < 116; j++){
-            Serial.print(display[i][j]);
+        for(int j = 0; j < 115; j++){
+            if(display[i][j]){
+                Serial.print('#');
+            }else{
+                Serial.print('0xE8');
+            }
         }
+        Serial.print('/n');
     }
-    */
 }
