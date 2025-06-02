@@ -33,20 +33,36 @@ void loop(){
         distance = getDist();
 
         if(0.02 <= distance && distance <= 4.0){
-            totalShift = (57 - (int)(distance / 0.0698122 * sin((centerAngle + i) * 0.01744444444))) + (57 + (int)(distance / 0.0698122 * cos((centerAngle + i) * 0.01744444444)));
+            totalShift = (57 - (int)(distance / 0.0698122 * sin((centerAngle + i) * 0.01744444444))) * 115 + (57 + (int)(distance / 0.0698122 * cos((centerAngle + i) * 0.01744444444)));
             
             if(getBit(63 - totalShift % 64, totalShift / 64) == false){
+                Serial.print("Distance: ");
+                Serial.print(distance);
+                Serial.print('\n');
+
+                Serial.print("Angle: ");
+                Serial.print(centerAngle + i);
+                Serial.print('\n');
+
+                Serial.print("Grid Row: ");
+                Serial.print(57 - (int)(distance / 0.0698122 * sin((centerAngle + i) * 0.01744444444)));
+                Serial.print('\n');
+
+                Serial.print("Grid Col: ");
+                Serial.print(57 + (int)(distance / 0.0698122 * cos((centerAngle + i) * 0.01744444444)));
+                Serial.print('\n');
+
                 Serial.print("Modification Row: ");
                 Serial.print(totalShift / 64);
                 Serial.print('\n');
 
-                Serial.print("Modification Index: ");
-                Serial.print(totalShift % 64);
+                Serial.print("Modification Index (Counting from leftmost): ");
+                Serial.print(63 - totalShift % 64);
                 Serial.print('\n');
                 
                 Serial.print("Original: ");
                 printBitVersion(totalShift / 64);
-                Serial.print((int)map_[totalShift / 64]);
+                Serial.print((unsigned int)map_[totalShift / 64]);
                 Serial.print('\n');
 
                 setBit(63 - totalShift % 64, totalShift / 64, true);
@@ -129,8 +145,8 @@ void display(){
 
 // Print out binary version of a number
 void printBitVersion(uint64_t x){
-    for(int i = 0; i < 64; i++){
-        Serial.print(getBit(i, x) == false ? '0' : '1');
+    for(int i = 63; i >= 0; i--){
+        Serial.print(getBit(i, x) ? '1' : '0');
     }
     Serial.print('\n');
 }
