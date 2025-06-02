@@ -1,13 +1,15 @@
 #include<Servo.h>
 
+// Grid will be 58 rows, 115 cols. Space between row/col is 0.0698122m
+
 int trigPin = 2, echoPin = 3;
 
 int servoPin = 9, centerAngle = 90;
 Servo servo;
 
-unsigned char bitmap[834];
-int currbit = 0, checkbit = 0;
-unsigned char c, checker;
+static uint64_t map_[105];
+int totalShift = 0;
+double distance = 0.0;
 
 void setup(){
     servo.attach(servoPin);
@@ -20,80 +22,40 @@ void setup(){
 }
 
 void loop(){
-    // Serial.print("looping");
-    // 58 rows, 57 increments of 0.0698122m to reach 4m
-    
-    for(int i = 0; i < 834; i++){
-        bitmap[i] = '00000000';
-    }
-
     servo.write(centerAngle);
+
+    reset();
 
     for(int i = -30; i <= 30; i++){
         servo.write(centerAngle + i);
         delay(300);
 
-        digitalWrite(trigPin, LOW);
-        delayMicroseconds(2);
-        digitalWrite(trigPin, HIGH);
-        delayMicroseconds(10);
-        digitalWrite(trigPin, LOW);
-
-        double duration = pulseIn(echoPin, HIGH);
-        //100 is to convert cm to m
-        double distance = duration * 0.0343 / (2.0 * 100.0);
-
-        /*
-        Serial.print(distance);
-        Serial.print('\n');
-        */
+        distance = getDist();
 
         if(0.02 <= distance && distance <= 4.0){
-            int row = 57 - (int)(distance / 0.0698122 * sin((centerAngle + i) * 0.01744444444));
-            int col = 57 + (int)(distance / 0.0698122 * cos((centerAngle + i) * 0.01744444444));
+            totalShift = (57 - (int)(distance / 0.0698122 * sin((centerAngle + i) * 0.01744444444))) + (57 + (int)(distance / 0.0698122 * cos((centerAngle + i) * 0.01744444444)));
             
-            /*
-            Serial.print(row);
-            Serial.print('\n');
-            Serial.print(col);
-            Serial.print('\n');
-            Serial.print('\n');
-            */
-
-            // unsighed char goes to 2^8 (0 to 255), 8 bits
-            // 2^7 + 2^6 + 2^5 + 2^4 + 2^3 + 2^2 + 2^1 + 2^0
-            
-            checker = bitmap[(row * 57 + col) / 8];
-            for(int i = 0; i < 8 - (row * 57 + col) % 8; i++){
-                checkbit = (checker & (1 << i)) != 0;
-            }
-            
-            if(!checkbit){
-                Serial.print("New Location Marked");
+            if(getBit(totalShift % 64, totalShift / 64) == false){
+                Serial.print("Modification Row: ");
+                Serial.print(totalShift / 64);
                 Serial.print('\n');
 
-                Serial.print("Row: ");
-                Serial.print(row);
-                Serial.print('\n');
-
-                Serial.print("Col: ");
-                Serial.print(col);
+                Serial.print("Modification Index: ");
+                Serial.print(totalShift % 64);
                 Serial.print('\n');
                 
-                Serial.print("Old Bits: ");
-                printBits(bitmap[(row * 57 + col)]);
+                Serial.print("Original: ");
+                printBitVersion(totalShift / 64);
+                Serial.print((int)map_[totalShift / 64]);
                 Serial.print('\n');
 
-                bitmap[(row * 57 + col) / 8] += pow(2, 7 - (row * 57 + col) % 8);
-
-                Serial.print("New Bits: ");
-                printBits(bitmap[(row * 57 + col)]);
+                setBit(totalShift % 64, totalShift / 64, true);
+                
+                Serial.print("Modified: ");
+                printBitVersion(totalShift / 64);
+                Serial.print((int)map_[totalShift / 64]);
                 Serial.print('\n');
-
-                Serial.print("Corrected Bit: ");
-                Serial.print(7 - (row * 57 + col) % 8);
-                Serial.print('\n');
-
+                
                 Serial.print('\n');
             }
         }
@@ -101,48 +63,74 @@ void loop(){
         delay(100);
     }
 
+    clearTerm();
+    display();
+}
+
+// Reset map
+void reset(){
+    for(int i = 0; i < 105; i++){
+        map_[i] = (uint64_t) (0);
+    }
+}
+// Get the current distance from ultrasonic
+double getDist(){
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+
+    double duration = pulseIn(echoPin, HIGH);
+
+    return duration * 0.0343 / (2.0 * 100.0);
+}
+
+// Get the xth bit in the yth index of the array
+bool getBit(unsigned x, unsigned y){
+    return !!(map_[y] & (1 << x));
+}
+
+// Set the xth bit in the yth index of the array to v
+void setBit(unsigned x, unsigned y, bool v){
+    uint64_t r = map_[y];
+    r &= ~(1 << x);
+
+    r |= v << x;
+
+    map_[y] = r;
+}
+
+// Clear terminal (bootleg way lmao)
+void clearTerm(){
     for(int i = 0; i < 40; i++){
         Serial.print('\n');
     }
-    
-    for(int i = 0; i < 833; i++){
-        c = bitmap[i];
-        for(int j = 0; j < 8; j++){
-            if((i * 8 + j) % 115 == 0 && i != 0){
+}
+
+// Print out current radar
+void display(){
+    for(int i = 0; i < 104; i++){
+        uint64_t r = map[i];
+        for(int j = 0; j < 64; j++){
+            if(i != 0 && j != 0 && (64 * i + j) % 115 == 0){
                 Serial.print('\n');
             }
 
-            currbit = (c & (1 << i)) != 0;        
-            Serial.print(currbit);
-
+            Serial.print(getBit(j, i) == false ? '0' : '1');
         }
     }
 
-    c = bitmap[833];
-    for(int i = 0; i < 6; i++){
-        currbit = (c & (1 << i)) != 0;
-        Serial.print(currbit);
+    for(int i = 0; i < 14; i++){
+        Serial.print(getBit(i, 104) == false ? '0' : '1');
     }
     Serial.print('\n');
-
-    /*
-    for(int i = 0; i < 833; i++){
-        c = bitmap[i];
-        for(int j = 0; j < 8; j++){
-            currbit = (c & (1 << i)) != 0;
-            if(currbit){
-                Serial.print('#');
-            }else{
-                Serial.print('0xE8');
-            }
-        }
-        Serial.print('\n');
-    }
-    */
 }
 
-void printBits(unsigned char toprint){
-    for(int i = 0; i < 8; i++){
-        Serial.print((toprint & (1 << i)) != 0);
+// Print out binary version of a number
+void printBitVersion(uint64_t x){
+    for(int i = 0; i < 64; i++){
+        Serial.print(getBit(i, x) == false ? '0' : '1');
     }
+    Serial.print('\n');
 }
