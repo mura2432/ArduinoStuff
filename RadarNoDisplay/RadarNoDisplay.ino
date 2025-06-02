@@ -18,9 +18,9 @@ void setup(){
 void loop(){
     servo.write(centerAngle);
 
-    for(int i = -30; i <= 30; i++){
+    for(int i = -30; i <= 30; i++){ 
         servo.write(centerAngle + i);
-        delayMicroseconds(10000);
+        delay(300);
 
         digitalWrite(trigPin, LOW);
         delayMicroseconds(2);
@@ -35,6 +35,7 @@ void loop(){
         Serial.print(" ");
         Serial.print(centerAngle + i);
         Serial.print('\n');
+        delay(100);
     }
 }
 
