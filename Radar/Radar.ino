@@ -35,7 +35,7 @@ void loop(){
         if(0.02 <= distance && distance <= 4.0){
             totalShift = (57 - (int)(distance / 0.0698122 * sin((centerAngle + i) * 0.01744444444))) + (57 + (int)(distance / 0.0698122 * cos((centerAngle + i) * 0.01744444444)));
             
-            if(getBit(totalShift % 64, totalShift / 64) == false){
+            if(getBit(63 - totalShift % 64, totalShift / 64) == false){
                 Serial.print("Modification Row: ");
                 Serial.print(totalShift / 64);
                 Serial.print('\n');
@@ -49,7 +49,7 @@ void loop(){
                 Serial.print((int)map_[totalShift / 64]);
                 Serial.print('\n');
 
-                setBit(totalShift % 64, totalShift / 64, true);
+                setBit(63 - totalShift % 64, totalShift / 64, true);
                 
                 Serial.print("Modified: ");
                 printBitVersion(totalShift / 64);
