@@ -104,13 +104,13 @@ double getDist(){
 
 // Get the xth bit in the yth index of the array
 bool getBit(unsigned x, unsigned y){
-    return !!(map_[y] & (1 << x));
+    return !!(map_[y] & ((uint64_t) 1 << x));
 }
 
 // Set the xth bit in the yth index of the array to v
 void setBit(unsigned x, unsigned y, bool v){
     uint64_t r = map_[y];
-    r &= ~(1 << x);
+    r &= ~((uint64_t) 1 << x);
 
     r |= v << x;
 
