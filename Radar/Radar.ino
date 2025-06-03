@@ -56,7 +56,7 @@ void loop(){
                 Serial.print(totalShift / 64);
                 Serial.print('\n');
 
-                Serial.print("Modification Index (Counting from leftmost): ");
+                Serial.print("Modification Index (Start from lsb): ");
                 Serial.print(63 - totalShift % 64);
                 Serial.print('\n');
                 
@@ -133,7 +133,7 @@ void display(){
                 Serial.print('\n');
             }
 
-            Serial.print(getBit(j, i) == false ? '0' : '1');
+            Serial.print(getBit(j, i) ? '1' : '0');
         }
     }
 
