@@ -33,7 +33,7 @@ void loop(){
         distance = getDist();
 
         if(0.02 <= distance && distance <= 4.0){
-            totalShift = (57 - (int)(distance / 0.0698122 * sin((centerAngle + i) * 0.01744444444))) * 115 + (57 + (int)(distance / 0.0698122 * cos((centerAngle + i) * 0.01744444444)));
+            totalShift = (57 - min(57, max(0, (int)(distance * sin((centerAngle + i) * 0.01744444444 / 0.0698122))))) * 115 + min(114, max(0, (57 + (int)(distance * cos((centerAngle + i) * 0.01744444444 / 0.0698122)))));
             
             if(getBit(63 - totalShift % 64, totalShift / 64) == false){
                 Serial.print("Distance: ");
@@ -128,8 +128,8 @@ void clearTerm(){
 void display(){
     for(int i = 0; i < 104; i++){
         uint64_t r = map[i];
-        for(int j = 0; j < 64; j++){
-            if(i != 0 && j != 0 && (64 * i + j) % 115 == 0){
+        for(int j = 63; j >= 0; j--){
+            if(i != 0 && j != 63 && (64 * i + (63 - j)) % 115 == 0){
                 Serial.print('\n');
             }
 
@@ -137,7 +137,7 @@ void display(){
         }
     }
 
-    for(int i = 0; i < 14; i++){
+    for(int i = 63; i >= 49; i--){
         Serial.print(getBit(i, 104) == false ? '0' : '1');
     }
     Serial.print('\n');
