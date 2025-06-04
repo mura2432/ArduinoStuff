@@ -31,19 +31,35 @@ void loop(){
         delay(300);
 
         distance = getDist();
+            
+        Serial.print("Distance: ");
+        Serial.print(distance);
+        Serial.print('\n');
+
+        Serial.print("Angle: ");
+        Serial.print(centerAngle + i);
+        Serial.print('\n');
 
         if(0.02 <= distance && distance <= 4.0){
-            totalShift = (57 - min(57, max(0, (int)(distance * sin((centerAngle + i) * 0.01744444444 / 0.0698122))))) * 115 + min(114, max(0, (57 + (int)(distance * cos((centerAngle + i) * 0.01744444444 / 0.0698122)))));
+            totalShift = (57 - min(57, max(0, (int)(distance * sin((centerAngle + i) * 0.01744444444) / 0.0698122)))) * 115 + min(114, max(0, (57 + (int)(distance * cos((centerAngle + i) * 0.01744444444) / 0.0698122))));
+            
+            /*
+            Serial.print("Bit Toggled 1 \n");
+            Serial.print("Total Shift = ");
+            Serial.print(totalShift);
+            Serial.print('\n');
+            Serial.print("Row = ");
+            Serial.print(57 - min(57, max(0, (int)(distance * sin((centerAngle + i) * 0.01744444444 / 0.0698122)))));
+            Serial.print('\n');
+            Serial.print("Col = ");
+            Serial.print(min(114, max(0, (57 + (int)(distance * cos((centerAngle + i) * 0.01744444444 / 0.0698122))))));
+            Serial.print('\n');
+            */
             
             if(getBit(63 - totalShift % 64, totalShift / 64) == false){
-                Serial.print("Distance: ");
-                Serial.print(distance);
-                Serial.print('\n');
-
-                Serial.print("Angle: ");
-                Serial.print(centerAngle + i);
-                Serial.print('\n');
-
+                setBit(63 - totalShift % 64, totalShift / 64, true);
+                Serial.print("Bit Toggled 2 \n");
+                /*
                 Serial.print("Grid Row: ");
                 Serial.print(57 - (int)(distance / 0.0698122 * sin((centerAngle + i) * 0.01744444444)));
                 Serial.print('\n');
@@ -62,17 +78,16 @@ void loop(){
                 
                 Serial.print("Original: ");
                 printBitVersion(totalShift / 64);
-                Serial.print((unsigned int)map_[totalShift / 64]);
                 Serial.print('\n');
 
                 setBit(63 - totalShift % 64, totalShift / 64, true);
                 
                 Serial.print("Modified: ");
                 printBitVersion(totalShift / 64);
-                Serial.print((int)map_[totalShift / 64]);
                 Serial.print('\n');
                 
                 Serial.print('\n');
+                */
             }
         }
 
@@ -104,7 +119,7 @@ double getDist(){
 
 // Get the xth bit in the yth index of the array
 bool getBit(unsigned x, unsigned y){
-    return !!(map_[y] & ((uint64_t) 1 << x));
+    return !!(map_[y] & (((uint64_t) 1) << x));
 }
 
 // Set the xth bit in the yth index of the array to v
@@ -112,7 +127,7 @@ void setBit(unsigned x, unsigned y, bool v){
     uint64_t r = map_[y];
     r &= ~((uint64_t) 1 << x);
 
-    r |= v << x;
+    r |= ((uint64_t) v) << x;
 
     map_[y] = r;
 }

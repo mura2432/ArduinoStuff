@@ -9,9 +9,17 @@ bool getBit(unsigned x, unsigned y){
 // Set the xth bit in the yth index of the array to v
 void setBit(unsigned x, unsigned y, bool v){
     uint64_t r = map_[y];
-    r &= ~((uint64_t) 1 << x);
 
-    r |= v << x;
+    std::cout<<'\n';
+    std::cout<<r<<'\n';
+
+    r &= ~(((uint64_t) 1) << x);
+
+    std::cout<<r<<'\n';
+
+    r |= ((uint64_t) v) << x;
+    std::cout<<r<<'\n';
+    std::cout<<'\n';
 
     map_[y] = r;
 }
@@ -26,7 +34,8 @@ void printBitVersion(){
 int main(){
     printBitVersion();
     std::cout<<(unsigned int) map_[0]<<'\n';
-    setBit(0, 0, true);
+    setBit(43, 0, true);
+    setBit(63, 0, true);
     printBitVersion();
     std::cout<<(unsigned int) map_[0]<<'\n';
 }
