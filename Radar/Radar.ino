@@ -43,8 +43,9 @@ void loop(){
         if(0.02 <= distance && distance <= 4.0){
             totalShift = (57 - min(57, max(0, (int)(distance * sin((centerAngle + i) * 0.01744444444) / 0.0698122)))) * 115 + min(114, max(0, (57 + (int)(distance * cos((centerAngle + i) * 0.01744444444) / 0.0698122))));
             
-            /*
+            
             Serial.print("Bit Toggled 1 \n");
+            /*
             Serial.print("Total Shift = ");
             Serial.print(totalShift);
             Serial.print('\n');
@@ -59,6 +60,7 @@ void loop(){
             if(getBit(63 - totalShift % 64, totalShift / 64) == false){
                 setBit(63 - totalShift % 64, totalShift / 64, true);
                 Serial.print("Bit Toggled 2 \n");
+                
                 /*
                 Serial.print("Grid Row: ");
                 Serial.print(57 - (int)(distance / 0.0698122 * sin((centerAngle + i) * 0.01744444444)));
