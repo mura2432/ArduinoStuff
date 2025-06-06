@@ -12,11 +12,13 @@ int totalShift = 0;
 double distance = 0.0;
 
 void setup(){
+    // Initialize servo and ultrasonic
     servo.attach(servoPin);
     
     pinMode(trigPin, OUTPUT);
     pinMode(echoPin, INPUT);
 
+    // Configure serial monitor
     Serial.begin(9600);
     while(!Serial);
 }
@@ -26,12 +28,14 @@ void loop(){
 
     reset();
 
+    // Scan 60 - 120 degrees. 90 degrees defined as forward/inital position
     for(int i = -30; i <= 30; i++){
         servo.write(centerAngle + i);
         delay(300);
 
         distance = getDist();
-            
+
+        /*
         Serial.print("Distance: ");
         Serial.print(distance);
         Serial.print('\n');
@@ -39,13 +43,16 @@ void loop(){
         Serial.print("Angle: ");
         Serial.print(centerAngle + i);
         Serial.print('\n');
+        */
 
         if(0.02 <= distance && distance <= 4.0){
+            // Convert rows/cols into the total number of characters relative to the start to access correct bit in 1d array.
+            // Used to save space
             totalShift = (57 - min(57, max(0, (int)(distance * sin((centerAngle + i) * 0.01744444444) / 0.0698122)))) * 115 + min(114, max(0, (57 + (int)(distance * cos((centerAngle + i) * 0.01744444444) / 0.0698122))));
             
-            
+            /*            
             Serial.print("Bit Toggled 1 \n");
-            /*
+
             Serial.print("Total Shift = ");
             Serial.print(totalShift);
             Serial.print('\n');
@@ -57,11 +64,13 @@ void loop(){
             Serial.print('\n');
             */
             
+            // Toggles a bit if not toggled already, there is the possiblity of double toggle in close proximity
             if(getBit(63 - totalShift % 64, totalShift / 64) == false){
                 setBit(63 - totalShift % 64, totalShift / 64, true);
-                Serial.print("Bit Toggled 2 \n");
                 
                 /*
+                Serial.print("Bit Toggled 2 \n");
+                
                 Serial.print("Grid Row: ");
                 Serial.print(57 - (int)(distance / 0.0698122 * sin((centerAngle + i) * 0.01744444444)));
                 Serial.print('\n');
@@ -96,6 +105,7 @@ void loop(){
         delay(100);
     }
 
+    // Clear previous detection and display new
     clearTerm();
     display();
 }
